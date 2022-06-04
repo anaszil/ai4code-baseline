@@ -6,7 +6,7 @@ from scipy import sparse
 from tqdm import tqdm
 import os
 
-data_dir = Path('/kaggle/input/')
+data_dir = Path('/kaggle/input/AI4Code/')
 if not os.path.exists("./data"):
     os.mkdir("./data")
 
