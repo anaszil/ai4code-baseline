@@ -122,8 +122,8 @@ def train(model, train_loader, val_loader, epochs):
             labels.append(target.detach().cpu().numpy().ravel())
 
             avg_loss = np.round(np.mean(loss_list), 4)
-            if idx % 1000:
-                torch.save(model.state_dict(), "./outputs/model-epoch-"+"str(e)-iter-"+str(idx)+".bin")
+            if idx % 1000==0:
+                torch.save(model.state_dict(), "./outputs/model-epoch-"+str(e)+"-iter-"+str(idx)+".bin")
             tbar.set_description(f"Epoch {e + 1} Loss: {avg_loss} lr: {scheduler.get_last_lr()}")
 
         y_val, y_pred = validate(model, val_loader)
