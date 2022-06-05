@@ -103,7 +103,7 @@ def train(model, train_loader, val_loader, epochs):
         loss_list = []
         preds = []
         labels = []
-
+        print("epoch : ====> ", e)
         for idx, data in enumerate(tbar):
             inputs, target = read_data(data)
 
