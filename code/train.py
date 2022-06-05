@@ -47,7 +47,7 @@ train_ds = MarkdownDataset(train_df_mark, model_name_or_path=args.model_name_or_
                            total_max_len=args.total_max_len, fts=train_fts)
 val_ds = MarkdownDataset(val_df_mark, model_name_or_path=args.model_name_or_path, md_max_len=args.md_max_len,
                          total_max_len=args.total_max_len, fts=val_fts)
-train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=args.n_workers,
+train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=False, num_workers=args.n_workers,
                           pin_memory=False, drop_last=True)
 val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=args.n_workers,
                         pin_memory=False, drop_last=False)
@@ -77,7 +77,22 @@ def validate(model, val_loader):
 
     return np.concatenate(labels), np.concatenate(preds)
 
+def save_checkpoint(model, optimizer, save_path, epoch):
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'epoch': epoch
+    }, save_path)
+ 
 
+def load_checkpoint(model, optimizer, load_path):
+    checkpoint = torch.load(load_path)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    epoch = checkpoint['epoch']
+    
+    return model, optimizer, epoch
+    
 def train(model, train_loader, val_loader, epochs):
     np.random.seed(0)
     # Creating optimizer and lr schedulers
@@ -122,8 +137,9 @@ def train(model, train_loader, val_loader, epochs):
             labels.append(target.detach().cpu().numpy().ravel())
 
             avg_loss = np.round(np.mean(loss_list), 4)
-            if idx % 1000==0:
-                torch.save(model.state_dict(), "./outputs/model-epoch-"+str(e)+"-iter-"+str(idx)+".bin")
+            if idx % 1000==1:
+                print("idx : ===> ", idx)
+                save_checkpoint(model, optimizer, "./outputs/latest.bin", e)
             tbar.set_description(f"Epoch {e + 1} Loss: {avg_loss} lr: {scheduler.get_last_lr()}")
 
         y_val, y_pred = validate(model, val_loader)
