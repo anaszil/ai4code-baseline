@@ -36,9 +36,9 @@ val_df_mark = pd.read_csv(args.val_mark_path).drop("parent_id", axis=1).dropna()
 val_fts = json.load(open(args.val_features_path))
 val_df = pd.read_csv(args.val_path)
 
-order_df = pd.read_csv("/kaggle/input/ai4code/train_orders.csv").set_index("id")
+order_df = pd.read_csv("/kaggle/input/AI4Code/train_orders.csv").set_index("id")
 df_orders = pd.read_csv(
-    data_dir / 'train_orders.csv',
+    data_dir / 'AI4Code/train_orders.csv',
     index_col='id',
     squeeze=True,
 ).str.split()
