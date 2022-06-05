@@ -13,11 +13,11 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Process some arguments')
 parser.add_argument('--model_name_or_path', type=str, default='microsoft/codebert-base')
-parser.add_argument('--train_mark_path', type=str, default='./data/train_mark.csv')
-parser.add_argument('--train_features_path', type=str, default='./data/train_fts.json')
-parser.add_argument('--val_mark_path', type=str, default='./data/val_mark.csv')
-parser.add_argument('--val_features_path', type=str, default='./data/val_fts.csv')
-parser.add_argument('--val_path', type=str, default="./data/val.csv")
+parser.add_argument('--train_mark_path', type=str, default='/kaggle/input/ai4code/data/train_mark.csv')
+parser.add_argument('--train_features_path', type=str, default='/kaggle/input/ai4code/data/train_fts.json')
+parser.add_argument('--val_mark_path', type=str, default='/kaggle/input/ai4code/data/val_mark.csv')
+parser.add_argument('--val_features_path', type=str, default='/kaggle/input/ai4code/data/val_fts.csv')
+parser.add_argument('--val_path', type=str, default="/kaggle/input/ai4code/data/val.csv")
 
 parser.add_argument('--md_max_len', type=int, default=64)
 parser.add_argument('--total_max_len', type=int, default=512)
@@ -28,7 +28,7 @@ parser.add_argument('--n_workers', type=int, default=8)
 
 args = parser.parse_args()
 os.mkdir("./outputs")
-data_dir = Path('..//input/')
+data_dir = Path('/kaggle/input/')
 
 train_df_mark = pd.read_csv(args.train_mark_path).drop("parent_id", axis=1).dropna().reset_index(drop=True)
 train_fts = json.load(open(args.train_features_path))
