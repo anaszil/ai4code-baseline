@@ -95,6 +95,8 @@ def load_checkpoint(model, optimizer, load_path):
     
 def train(model, train_loader, val_loader, epochs):
     np.random.seed(0)
+    
+
     # Creating optimizer and lr schedulers
     param_optimizer = list(model.named_parameters())
     no_decay = ['bias', 'LayerNorm.bias', 'LayerNorm.weight']
@@ -106,6 +108,10 @@ def train(model, train_loader, val_loader, epochs):
     num_train_optimization_steps = int(args.epochs * len(train_loader) / args.accumulation_steps)
     optimizer = AdamW(optimizer_grouped_parameters, lr=3e-5,
                       correct_bias=False)  # To reproduce BertAdam specific behavior set correct_bias=False
+    
+    # loading model :
+    model, optimizer, epoch = load_checkpoint(model, optimizer, "/kaggle/input/ai4code/latest.bin")
+    
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0.05 * num_train_optimization_steps,
                                                 num_training_steps=num_train_optimization_steps)  # PyTorch scheduler
 
@@ -120,8 +126,10 @@ def train(model, train_loader, val_loader, epochs):
         labels = []
         print("epoch : ====> ", e)
         for idx, data in enumerate(tbar):
+            if idx < 94000 and e == 0:
+                continue
+                
             inputs, target = read_data(data)
-
             with torch.cuda.amp.autocast():
                 pred = model(*inputs)
                 loss = criterion(pred, target)
