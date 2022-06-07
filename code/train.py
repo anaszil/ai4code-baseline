@@ -127,10 +127,11 @@ def train(model, train_loader, val_loader, epochs):
         labels = []
         print("epoch : ====> ", e)
         for idx, data in enumerate(tbar):
-            if idx < 94000 and e == 0:
-                continue
+            
                 
             inputs, target = read_data(data)
+            if idx < 94000 and e == 0:
+                continue
             with torch.cuda.amp.autocast():
                 pred = model(*inputs)
                 loss = criterion(pred, target)
