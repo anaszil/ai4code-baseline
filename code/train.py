@@ -138,8 +138,8 @@ def train(model, train_loader, val_loader, epochs):
                 if f:
                     f = False
                     print("time : ", time.time() - t1)
-                    print("idx : ", idx)
-                    
+                    print("idx : =>", idx)
+
                 with torch.cuda.amp.autocast():
                     pred = model(*inputs)
                     loss = criterion(pred, target)
