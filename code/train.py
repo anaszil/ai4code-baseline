@@ -124,7 +124,7 @@ def train(model, train_loader, val_loader, epochs):
     f = True
     for e in range(epochs):
         model.train()
-        tbar = tqdm(train_loader, file=sys.stdout)
+        tbar = tqdm(train_loader)
         loss_list = []
         preds = []
         labels = []
@@ -159,6 +159,8 @@ def train(model, train_loader, val_loader, epochs):
                     print("idx : ===> ", idx)
                     save_checkpoint(model, optimizer, "./outputs/latest.bin", e)
                 tbar.set_description(f"Epoch {e + 1} Loss: {avg_loss} lr: {scheduler.get_last_lr()}")
+            else:
+                del inputs, target
 
         y_val, y_pred = validate(model, val_loader)
         val_df["pred"] = val_df.groupby(["id", "cell_type"])["rank"].rank(pct=True)
