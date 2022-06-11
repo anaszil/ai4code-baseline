@@ -1,4 +1,5 @@
 import json
+import time
 from pathlib import Path
 from dataset import *
 import numpy as np
@@ -111,7 +112,7 @@ def train(model, train_loader, val_loader, epochs):
                       correct_bias=False)  # To reproduce BertAdam specific behavior set correct_bias=False
     
     # loading model :
-    model, optimizer, epoch = load_checkpoint(model, optimizer, "/kaggle/input/ai4code/latest.bin")
+    model, optimizer, epoch = load_checkpoint(model, optimizer, "./outputs/latest.bin")
     
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0.05 * num_train_optimization_steps,
                                                 num_training_steps=num_train_optimization_steps)  # PyTorch scheduler
@@ -119,6 +120,8 @@ def train(model, train_loader, val_loader, epochs):
     criterion = torch.nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
 
+    t1 = time.time()
+    f = True
     for e in range(epochs):
         model.train()
         tbar = tqdm(train_loader, file=sys.stdout)
@@ -126,31 +129,36 @@ def train(model, train_loader, val_loader, epochs):
         preds = []
         labels = []
         print("epoch : ====> ", e)
+    
         for idx, data in enumerate(tbar):
             
-                
+            
             inputs, target = read_data(data)
-            if idx < 94000 and e == 0:
-                continue
-            with torch.cuda.amp.autocast():
-                pred = model(*inputs)
-                loss = criterion(pred, target)
-            scaler.scale(loss).backward()
-            if idx % args.accumulation_steps == 0 or idx == len(tbar) - 1:
-                scaler.step(optimizer)
-                scaler.update()
-                optimizer.zero_grad()
-                scheduler.step()
+            if idx >= 94000 and e != 0:
+                if f:
+                    f = False
+                    print("time : ", time.time() - t1)
+                    print("idx : ", idx)
+                    
+                with torch.cuda.amp.autocast():
+                    pred = model(*inputs)
+                    loss = criterion(pred, target)
+                scaler.scale(loss).backward()
+                if idx % args.accumulation_steps == 0 or idx == len(tbar) - 1:
+                    scaler.step(optimizer)
+                    scaler.update()
+                    optimizer.zero_grad()
+                    scheduler.step()
 
-            loss_list.append(loss.detach().cpu().item())
-            preds.append(pred.detach().cpu().numpy().ravel())
-            labels.append(target.detach().cpu().numpy().ravel())
+                loss_list.append(loss.detach().cpu().item())
+                preds.append(pred.detach().cpu().numpy().ravel())
+                labels.append(target.detach().cpu().numpy().ravel())
 
-            avg_loss = np.round(np.mean(loss_list), 4)
-            if idx % 1000==1:
-                print("idx : ===> ", idx)
-                save_checkpoint(model, optimizer, "./outputs/latest.bin", e)
-            tbar.set_description(f"Epoch {e + 1} Loss: {avg_loss} lr: {scheduler.get_last_lr()}")
+                avg_loss = np.round(np.mean(loss_list), 4)
+                if idx % 1000==1:
+                    print("idx : ===> ", idx)
+                    save_checkpoint(model, optimizer, "./outputs/latest.bin", e)
+                tbar.set_description(f"Epoch {e + 1} Loss: {avg_loss} lr: {scheduler.get_last_lr()}")
 
         y_val, y_pred = validate(model, val_loader)
         val_df["pred"] = val_df.groupby(["id", "cell_type"])["rank"].rank(pct=True)
