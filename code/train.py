@@ -48,9 +48,9 @@ train_ds = MarkdownDataset(train_df_mark, model_name_or_path=args.model_name_or_
                            total_max_len=args.total_max_len, fts=train_fts)
 val_ds = MarkdownDataset(val_df_mark, model_name_or_path=args.model_name_or_path, md_max_len=args.md_max_len,
                          total_max_len=args.total_max_len, fts=val_fts)
-train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=False, num_workers=args.n_workers,
+train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=args.n_workers,
                           pin_memory=False, drop_last=True)
-val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=args.n_workers,
+val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=True, num_workers=args.n_workers,
                         pin_memory=False, drop_last=False)
 
 
@@ -122,7 +122,7 @@ def train(model, train_loader, val_loader, epochs):
 
     t1 = time.time()
     f = True
-    for e in range(1,epochs):
+    for e in range(2,epochs):
         model.train()
         tbar = tqdm(train_loader)
         loss_list = []
@@ -134,33 +134,27 @@ def train(model, train_loader, val_loader, epochs):
             
             
             inputs, target = read_data(data)
-            if idx >= 94002 and e > 0:
-                if f:
-                    f = False
-                    print("time : ", time.time() - t1)
-                    print("idx : =>", idx)
 
-                with torch.cuda.amp.autocast():
-                    pred = model(*inputs)
-                    loss = criterion(pred, target)
-                scaler.scale(loss).backward()
-                if idx % args.accumulation_steps == 0 or idx == len(tbar) - 1:
-                    scaler.step(optimizer)
-                    scaler.update()
-                    optimizer.zero_grad()
-                    scheduler.step()
+            with torch.cuda.amp.autocast():
+                pred = model(*inputs)
+                loss = criterion(pred, target)
+            scaler.scale(loss).backward()
+            if idx % args.accumulation_steps == 0 or idx == len(tbar) - 1:
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad()
+                scheduler.step()
 
-                loss_list.append(loss.detach().cpu().item())
-                preds.append(pred.detach().cpu().numpy().ravel())
-                labels.append(target.detach().cpu().numpy().ravel())
+            loss_list.append(loss.detach().cpu().item())
+            preds.append(pred.detach().cpu().numpy().ravel())
+            labels.append(target.detach().cpu().numpy().ravel())
 
-                avg_loss = np.round(np.mean(loss_list), 4)
-                if idx % 1000==1:
-                    print("idx : ===> ", idx)
-                    save_checkpoint(model, optimizer, "./outputs/latest.bin", e)
-                tbar.set_description(f"Epoch {e + 1} Loss: {avg_loss} lr: {scheduler.get_last_lr()}")
-            else:
-                del inputs, target
+            avg_loss = np.round(np.mean(loss_list), 4)
+            if idx % 1000==1:
+                print("idx : ===> ", idx)
+                save_checkpoint(model, optimizer, "./outputs/latest.bin", e)
+            tbar.set_description(f"Epoch {e + 1} Loss: {avg_loss} lr: {scheduler.get_last_lr()}")
+
 
         y_val, y_pred = validate(model, val_loader)
         val_df["pred"] = val_df.groupby(["id", "cell_type"])["rank"].rank(pct=True)
