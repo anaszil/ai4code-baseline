@@ -44,6 +44,14 @@ df_orders = pd.read_csv(
     squeeze=True,
 ).str.split()
 
+import random
+seed = 41
+random.seed(seed)
+torch.manual_seed(seed)
+torch.cuda.manual_seed(seed)
+np.random.seed(seed)
+
+
 train_ds = MarkdownDataset(train_df_mark, model_name_or_path=args.model_name_or_path, md_max_len=args.md_max_len,
                            total_max_len=args.total_max_len, fts=train_fts)
 val_ds = MarkdownDataset(val_df_mark, model_name_or_path=args.model_name_or_path, md_max_len=args.md_max_len,
@@ -96,7 +104,6 @@ def load_checkpoint(model, optimizer, load_path):
     return model, optimizer, epoch
     
 def train(model, train_loader, val_loader, epochs):
-    np.random.seed(0)
     
 
     # Creating optimizer and lr schedulers
@@ -112,7 +119,7 @@ def train(model, train_loader, val_loader, epochs):
                       correct_bias=False)  # To reproduce BertAdam specific behavior set correct_bias=False
     
     # loading model :
-    model, optimizer, epoch = load_checkpoint(model, optimizer, "/kaggle/input/ai4code/latest_3.bin")
+    model, optimizer, epoch = load_checkpoint(model, optimizer, "/kaggle/input/ai4code/latest_2.bin")
     
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0.05 * num_train_optimization_steps,
                                                 num_training_steps=num_train_optimization_steps)  # PyTorch scheduler
@@ -120,9 +127,7 @@ def train(model, train_loader, val_loader, epochs):
     criterion = torch.nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
 
-    t1 = time.time()
-    f = True
-    for e in range(2,epochs):
+    for e in range(1):
         model.train()
         tbar = tqdm(train_loader)
         loss_list = []
