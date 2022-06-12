@@ -134,7 +134,7 @@ def train(model, train_loader, val_loader, epochs):
             
             
             inputs, target = read_data(data)
-            if idx >= 94000 and e != 0:
+            if idx >= 94002 and e > 1:
                 if f:
                     f = False
                     print("time : ", time.time() - t1)
