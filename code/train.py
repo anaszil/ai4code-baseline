@@ -112,7 +112,7 @@ def train(model, train_loader, val_loader, epochs):
                       correct_bias=False)  # To reproduce BertAdam specific behavior set correct_bias=False
     
     # loading model :
-    model, optimizer, epoch = load_checkpoint(model, optimizer, "/kaggle/input/ai4code/latest_2.bin")
+    model, optimizer, epoch = load_checkpoint(model, optimizer, "/kaggle/input/ai4code/latest_3.bin")
     
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=0.05 * num_train_optimization_steps,
                                                 num_training_steps=num_train_optimization_steps)  # PyTorch scheduler
