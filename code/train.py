@@ -87,14 +87,24 @@ def validate(model, val_loader):
     return np.concatenate(labels), np.concatenate(preds)
 
 def save_checkpoint(model, optimizer, save_path, epoch):
-    if os.path.exists(save_path):
-        os.remove(save_path)
+    save_path1 = save_path.replace("latest", "latest_1")
+    save_path2 = save_path.replace("latest", "latest_2")
+    
+    if os.path.exists(save_path2):
+        save_path_ok = save_path1
+        save_path_del = save_path2
+    else:
+        save_path_ok = save_path2
+        save_path_del = save_path1
+
     torch.save({
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'epoch': epoch
-    }, save_path)
- 
+    }, save_path_ok)
+    print("saved checkpoint : ", save_path_ok)
+    if os.path.exists(save_path_del):
+        os.remove(save_path_del)
 
 def load_checkpoint(model, optimizer, load_path):
     print("loaded checkpoint")
@@ -157,7 +167,7 @@ def train(model, train_loader, val_loader, epochs):
             labels.append(target.detach().cpu().numpy().ravel())
 
             avg_loss = np.round(np.mean(loss_list), 4)
-            if idx % 1000==1:
+            if idx % 2000==1:
                 print("idx : ===> ", idx)
                 save_checkpoint(model, optimizer, "./outputs/latest.bin", e)
             tbar.set_description(f"Epoch {e + 1} Loss: {avg_loss} lr: {scheduler.get_last_lr()}")
