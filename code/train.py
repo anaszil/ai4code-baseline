@@ -45,7 +45,7 @@ df_orders = pd.read_csv(
 ).str.split()
 
 import random
-seed = 1
+seed = 1111
 random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
