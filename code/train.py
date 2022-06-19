@@ -45,7 +45,7 @@ df_orders = pd.read_csv(
 ).str.split()
 
 import random
-seed = 1145
+seed = 222
 random.seed(seed)
 torch.manual_seed(seed)
 torch.cuda.manual_seed(seed)
@@ -139,7 +139,7 @@ def train(model, train_loader, val_loader, epochs):
     criterion = torch.nn.L1Loss()
     scaler = torch.cuda.amp.GradScaler()
 
-    for e in range(1):
+    for e in range(2,3):
         model.train()
         tbar = tqdm(train_loader)
         loss_list = []
@@ -167,7 +167,7 @@ def train(model, train_loader, val_loader, epochs):
             labels.append(target.detach().cpu().numpy().ravel())
 
             avg_loss = np.round(np.mean(loss_list), 4)
-            if idx % 2000==1:
+            if idx % 4000==1:
                 print("idx : ===> ", idx)
                 save_checkpoint(model, optimizer, "./outputs/latest.bin", e)
             tbar.set_description(f"Epoch {e + 1} Loss: {avg_loss} lr: {scheduler.get_last_lr()}")
